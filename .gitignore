@@ -1,0 +1,12 @@
+# Build artifacts
+*.o
+*.exe
+sort_visual
+
+# macOS
+.DS_Store
+
+# Editor folders
+.vscode/
+.idea/
+*.swp
