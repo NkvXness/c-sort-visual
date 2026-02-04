@@ -14,6 +14,9 @@ int main(void) {
     VisState *vis = vis_create(arr->size);
 
     while (!WindowShouldClose()) {
+        if (IsKeyPressed(KEY_SPACE))
+            array_shuffle(arr);
+
         BeginDrawing();
         ClearBackground((Color){ 10, 10, 16, 255 });
         vis_draw_bars(arr, vis, 0, 0, SCREEN_W, SCREEN_H);
