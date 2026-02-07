@@ -1,5 +1,6 @@
 #include "sort.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define INITIAL_CAPACITY 8192
 
@@ -37,4 +38,23 @@ int queue_pop(StepQueue *q, SortStep *out) {
 
 int queue_done(const StepQueue *q) {
     return q->head >= q->count;
+}
+
+static void swap(int *arr, int i, int j) {
+    int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+}
+
+void gen_bubble_sort(StepQueue *q, const int *data, int size) {
+    int *arr = malloc(sizeof(int) * size);
+    memcpy(arr, data, sizeof(int) * size);
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i; j++) {
+            queue_push(q, STEP_COMPARE, j, j + 1);
+            if (arr[j] > arr[j + 1]) {
+                queue_push(q, STEP_SWAP, j, j + 1);
+                swap(arr, j, j + 1);
+            }
+        }
+    }
+    free(arr);
 }
