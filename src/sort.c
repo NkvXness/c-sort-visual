@@ -48,7 +48,7 @@ void gen_bubble_sort(StepQueue *q, const int *data, int size) {
     int *arr = malloc(sizeof(int) * size);
     memcpy(arr, data, sizeof(int) * size);
     for (int i = 0; i < size - 1; i++) {
-        for (int j = 0; j < size - i; j++) {
+        for (int j = 0; j < size - i - 1; j++) {
             queue_push(q, STEP_COMPARE, j, j + 1);
             if (arr[j] > arr[j + 1]) {
                 queue_push(q, STEP_SWAP, j, j + 1);
