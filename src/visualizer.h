@@ -2,6 +2,7 @@
 #define VISUALIZER_H
 
 #include "array.h"
+#include "sort.h"
 #include <raylib.h>
 
 typedef enum {
@@ -19,6 +20,7 @@ typedef struct {
 
 VisState *vis_create(int size);
 void      vis_free(VisState *vs);
+void      vis_apply_step(VisState *vs, const SortStep *step, int *data);
 void      vis_draw_bars(const Array *arr, const VisState *vs,
                         int ox, int oy, int w, int h);
 

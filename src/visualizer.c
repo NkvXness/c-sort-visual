@@ -30,6 +30,34 @@ void vis_free(VisState *vs) {
     free(vs);
 }
 
+void vis_apply_step(VisState *vs, const SortStep *step, int *data) {
+    for (int i = 0; i < vs->size; i++)
+        if (vs->roles[i] == ROLE_COMPARING || vs->roles[i] == ROLE_SWAPPING)
+            vs->roles[i] = ROLE_NORMAL;
+
+    switch (step->type) {
+        case STEP_COMPARE:
+            vs->roles[step->a] = ROLE_COMPARING;
+            vs->roles[step->b] = ROLE_COMPARING;
+            break;
+        case STEP_SWAP: {
+            vs->roles[step->a] = ROLE_SWAPPING;
+            vs->roles[step->b] = ROLE_SWAPPING;
+            int tmp = data[step->a]; data[step->a] = data[step->b]; data[step->b] = tmp;
+            break;
+        }
+        case STEP_SET_PIVOT:   vs->roles[step->a] = ROLE_PIVOT;  break;
+        case STEP_CLEAR_PIVOT:
+            if (vs->roles[step->a] == ROLE_PIVOT) vs->roles[step->a] = ROLE_NORMAL;
+            break;
+        case STEP_MARK_SORTED:    vs->roles[step->a] = ROLE_SORTED; break;
+        case STEP_MARK_ALL_SORTED:
+            for (int i = step->a; i <= step->b; i++)
+                vs->roles[i] = ROLE_SORTED;
+            break;
+    }
+}
+
 void vis_draw_bars(const Array *arr, const VisState *vs,
                    int ox, int oy, int w, int h) {
     float bar_w = (float)w / arr->size;

@@ -31,4 +31,6 @@ void       queue_push(StepQueue *q, StepType type, int a, int b);
 int        queue_pop(StepQueue *q, SortStep *out);
 int        queue_done(const StepQueue *q);
 
+void gen_bubble_sort(StepQueue *q, const int *data, int size);
+
 #endif
