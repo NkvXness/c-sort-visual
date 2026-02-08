@@ -44,6 +44,23 @@ static void swap(int *arr, int i, int j) {
     int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
 }
 
+void gen_selection_sort(StepQueue *q, const int *data, int size) {
+    int *arr = malloc(sizeof(int) * size);
+    memcpy(arr, data, sizeof(int) * size);
+    for (int i = 0; i < size - 1; i++) {
+        int min_idx = i;
+        for (int j = i + 1; j < size; j++) {
+            queue_push(q, STEP_COMPARE, min_idx, j);
+            if (arr[j] < arr[min_idx]) min_idx = j;
+        }
+        if (min_idx != i) {
+            queue_push(q, STEP_SWAP, i, min_idx);
+            swap(arr, i, min_idx);
+        }
+    }
+    free(arr);
+}
+
 void gen_bubble_sort(StepQueue *q, const int *data, int size) {
     int *arr = malloc(sizeof(int) * size);
     memcpy(arr, data, sizeof(int) * size);
