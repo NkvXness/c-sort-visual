@@ -58,6 +58,7 @@ void gen_insertion_sort(StepQueue *q, const int *data, int size) {
             } else break;
         }
     }
+    queue_push(q, STEP_MARK_ALL_SORTED, 0, size - 1);
     free(arr);
 }
 
@@ -74,7 +75,9 @@ void gen_selection_sort(StepQueue *q, const int *data, int size) {
             queue_push(q, STEP_SWAP, i, min_idx);
             swap(arr, i, min_idx);
         }
+        queue_push(q, STEP_MARK_SORTED, i, -1);
     }
+    queue_push(q, STEP_MARK_SORTED, size - 1, -1);
     free(arr);
 }
 
@@ -89,6 +92,8 @@ void gen_bubble_sort(StepQueue *q, const int *data, int size) {
                 swap(arr, j, j + 1);
             }
         }
+        queue_push(q, STEP_MARK_SORTED, size - i - 1, -1);
     }
+    queue_push(q, STEP_MARK_SORTED, 0, -1);
     free(arr);
 }
