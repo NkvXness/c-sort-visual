@@ -44,6 +44,23 @@ static void swap(int *arr, int i, int j) {
     int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
 }
 
+void gen_insertion_sort(StepQueue *q, const int *data, int size) {
+    int *arr = malloc(sizeof(int) * size);
+    memcpy(arr, data, sizeof(int) * size);
+    for (int i = 1; i < size; i++) {
+        int j = i;
+        while (j > 0) {
+            queue_push(q, STEP_COMPARE, j - 1, j);
+            if (arr[j - 1] > arr[j]) {
+                queue_push(q, STEP_SWAP, j - 1, j);
+                swap(arr, j - 1, j);
+                j--;
+            } else break;
+        }
+    }
+    free(arr);
+}
+
 void gen_selection_sort(StepQueue *q, const int *data, int size) {
     int *arr = malloc(sizeof(int) * size);
     memcpy(arr, data, sizeof(int) * size);
