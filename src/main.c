@@ -37,6 +37,8 @@ int main(void) {
                 vis_apply_step(vis, &step, arr->data);
         }
 
+        vis_update_anims(vis, GetFrameTime());
+
         BeginDrawing();
         ClearBackground((Color){ 10, 10, 16, 255 });
         vis_draw_bars(arr, vis, 0, 0, SCREEN_W, SCREEN_H);

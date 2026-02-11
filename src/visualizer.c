@@ -8,6 +8,15 @@ static const Color COL_SWAP    = { 228,  58,  58, 255 };
 static const Color COL_SORTED  = {  56, 200,  96, 255 };
 static const Color COL_PIVOT   = { 196,  72, 220, 255 };
 
+static Color lerp_color(Color a, Color b, float t) {
+    return (Color){
+        (unsigned char)(a.r + (float)(b.r - a.r) * t),
+        (unsigned char)(a.g + (float)(b.g - a.g) * t),
+        (unsigned char)(a.b + (float)(b.b - a.b) * t),
+        255
+    };
+}
+
 static Color role_to_color(int role) {
     switch (role) {
         case ROLE_COMPARING: return COL_COMPARE;
@@ -20,13 +29,15 @@ static Color role_to_color(int role) {
 
 VisState *vis_create(int size) {
     VisState *vs = malloc(sizeof(VisState));
-    vs->size  = size;
-    vs->roles = calloc(size, sizeof(int));
+    vs->size   = size;
+    vs->roles  = calloc(size, sizeof(int));
+    vs->anim_t = calloc(size, sizeof(float));
     return vs;
 }
 
 void vis_free(VisState *vs) {
     free(vs->roles);
+    free(vs->anim_t);
     free(vs);
 }
 
@@ -44,17 +55,34 @@ void vis_apply_step(VisState *vs, const SortStep *step, int *data) {
             vs->roles[step->a] = ROLE_SWAPPING;
             vs->roles[step->b] = ROLE_SWAPPING;
             int tmp = data[step->a]; data[step->a] = data[step->b]; data[step->b] = tmp;
+            vs->anim_t[step->a] = 0.0f;
+            vs->anim_t[step->b] = 0.0f;
             break;
         }
         case STEP_SET_PIVOT:   vs->roles[step->a] = ROLE_PIVOT;  break;
         case STEP_CLEAR_PIVOT:
             if (vs->roles[step->a] == ROLE_PIVOT) vs->roles[step->a] = ROLE_NORMAL;
             break;
-        case STEP_MARK_SORTED:    vs->roles[step->a] = ROLE_SORTED; break;
-        case STEP_MARK_ALL_SORTED:
-            for (int i = step->a; i <= step->b; i++)
-                vs->roles[i] = ROLE_SORTED;
+        case STEP_MARK_SORTED:
+            vs->roles[step->a]  = ROLE_SORTED;
+            vs->anim_t[step->a] = 0.0f;
             break;
+        case STEP_MARK_ALL_SORTED:
+            for (int i = step->a; i <= step->b; i++) {
+                vs->roles[i]  = ROLE_SORTED;
+                vs->anim_t[i] = 0.0f;
+            }
+            break;
+    }
+}
+
+void vis_update_anims(VisState *vs, float dt) {
+    const float ANIM_SPEED = 8.3f;
+    for (int i = 0; i < vs->size; i++) {
+        if (vs->anim_t[i] < 1.0f) {
+            vs->anim_t[i] += dt * ANIM_SPEED;
+            if (vs->anim_t[i] > 1.0f) vs->anim_t[i] = 1.0f;
+        }
     }
 }
 
@@ -69,7 +97,8 @@ void vis_draw_bars(const Array *arr, const VisState *vs,
         int   by    = oy + h - bar_h;
         int   bw    = (int)(bar_w - gap);
         if (bw < 1) bw = 1;
-        Color col = role_to_color(vs->roles[i]);
+        Color target = role_to_color(vs->roles[i]);
+        Color col    = lerp_color(COL_NORMAL, target, vs->anim_t[i]);
         DrawRectangle(bx, by, bw, bar_h, col);
     }
 }
