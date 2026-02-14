@@ -44,6 +44,38 @@ static void swap(int *arr, int i, int j) {
     int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
 }
 
+void gen_quick_sort(StepQueue *q, const int *data, int size) {
+    int *arr   = malloc(sizeof(int) * size);
+    int *stack = malloc(sizeof(int) * size * 2);
+    memcpy(arr, data, sizeof(int) * size);
+    int top = -1;
+    stack[++top] = 0;
+    stack[++top] = size - 1;
+    while (top >= 0) {
+        int hi = stack[top--];
+        int lo = stack[top--];
+        if (lo >= hi) continue;
+        queue_push(q, STEP_SET_PIVOT, hi, -1);
+        int pivot = arr[hi];
+        int i = lo - 1;
+        for (int j = lo; j < hi; j++) {
+            queue_push(q, STEP_COMPARE, j, hi);
+            if (arr[j] <= pivot) {
+                i++;
+                if (i != j) { queue_push(q, STEP_SWAP, i, j); swap(arr, i, j); }
+            }
+        }
+        int p = i + 1;
+        if (p != hi) { queue_push(q, STEP_SWAP, p, hi); swap(arr, p, hi); }
+        queue_push(q, STEP_CLEAR_PIVOT, hi, -1);
+        queue_push(q, STEP_MARK_SORTED, p, -1);
+        stack[++top] = lo;   stack[++top] = p - 1;
+        stack[++top] = p + 1; stack[++top] = hi;
+    }
+    free(stack);
+    free(arr);
+}
+
 void gen_merge_sort(StepQueue *q, const int *data, int size) {
     int *arr = malloc(sizeof(int) * size);
     int *tmp = malloc(sizeof(int) * size);
