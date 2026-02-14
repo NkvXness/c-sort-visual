@@ -34,5 +34,6 @@ int        queue_done(const StepQueue *q);
 void gen_bubble_sort(StepQueue *q, const int *data, int size);
 void gen_selection_sort(StepQueue *q, const int *data, int size);
 void gen_insertion_sort(StepQueue *q, const int *data, int size);
+void gen_merge_sort(StepQueue *q, const int *data, int size);
 
 #endif
