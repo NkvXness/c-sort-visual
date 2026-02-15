@@ -4,9 +4,11 @@
 #include "array.h"
 #include "sort.h"
 #include "visualizer.h"
+#include "ui.h"
 
 #define SCREEN_W   1280
 #define SCREEN_H    720
+#define TOOLBAR_H    58
 #define ALGO_COUNT    5
 
 typedef void (*GenFn)(StepQueue *, const int *, int);
@@ -20,6 +22,24 @@ static const GenFn ALGO_GEN[ALGO_COUNT] = {
     gen_merge_sort,  gen_quick_sort
 };
 
+static void reset(Array *arr, VisState *vis, StepQueue **queue, int *running) {
+    array_shuffle(arr);
+    memset(vis->roles,  0, vis->size * sizeof(int));
+    memset(vis->anim_t, 0, vis->size * sizeof(float));
+    if (*queue) { queue_free(*queue); *queue = NULL; }
+    *running = 0;
+}
+
+static void start_sort(Array *arr, VisState *vis, StepQueue **queue,
+                        int *running, int algo) {
+    if (*queue) queue_free(*queue);
+    *queue = queue_create();
+    ALGO_GEN[algo](*queue, arr->data, arr->size);
+    memset(vis->roles,  0, vis->size * sizeof(int));
+    memset(vis->anim_t, 0, vis->size * sizeof(float));
+    *running = 1;
+}
+
 int main(void) {
     InitWindow(SCREEN_W, SCREEN_H, "c-sort-visual");
     SetTargetFPS(60);
@@ -28,36 +48,36 @@ int main(void) {
     VisState  *vis   = vis_create(arr->size);
     StepQueue *queue = NULL;
     int running = 0;
+    int paused  = 0;
     int algo    = 0;
 
+    Button algo_btns[ALGO_COUNT];
+    for (int i = 0; i < ALGO_COUNT; i++)
+        algo_btns[i] = (Button){
+            { 10.0f + (float)i * 166.0f, 11.0f, 158.0f, 36.0f },
+            ALGO_NAMES[i], (i == 0)
+        };
+
+    Button btn_shuffle = {{ 890.0f, 11.0f,  90.0f, 36.0f }, "Shuffle", 0 };
+    Button btn_play    = {{ 986.0f, 11.0f,  76.0f, 36.0f }, "Play",    0 };
+    Button btn_pause   = {{1068.0f, 11.0f,  76.0f, 36.0f }, "Pause",   0 };
+    Button btn_step    = {{1150.0f, 11.0f, 120.0f, 36.0f }, "Step →",  0 };
+
     while (!WindowShouldClose()) {
-        /* algorithm selection: keys 1-5 */
+        /* keyboard algo selection */
         for (int i = 0; i < ALGO_COUNT; i++) {
             if (IsKeyPressed(KEY_ONE + i)) {
                 algo = i;
-                array_shuffle(arr);
-                memset(vis->roles,  0, vis->size * sizeof(int));
-                memset(vis->anim_t, 0, vis->size * sizeof(float));
-                if (queue) { queue_free(queue); queue = NULL; }
-                running = 0;
+                for (int j = 0; j < ALGO_COUNT; j++) algo_btns[j].active = (j == i);
+                reset(arr, vis, &queue, &running);
             }
         }
+        if (IsKeyPressed(KEY_SPACE)) reset(arr, vis, &queue, &running);
+        if (IsKeyPressed(KEY_ENTER) && !running)
+            start_sort(arr, vis, &queue, &running, algo);
+        if (IsKeyPressed(KEY_P)) paused = !paused;
 
-        if (IsKeyPressed(KEY_SPACE)) {
-            array_shuffle(arr);
-            memset(vis->roles,  0, vis->size * sizeof(int));
-            memset(vis->anim_t, 0, vis->size * sizeof(float));
-            if (queue) { queue_free(queue); queue = NULL; }
-            running = 0;
-        }
-        if (IsKeyPressed(KEY_ENTER) && !running) {
-            if (queue) queue_free(queue);
-            queue = queue_create();
-            ALGO_GEN[algo](queue, arr->data, arr->size);
-            running = 1;
-        }
-
-        if (running && !queue_done(queue)) {
+        if (running && !paused && queue && !queue_done(queue)) {
             SortStep step;
             if (queue_pop(queue, &step))
                 vis_apply_step(vis, &step, arr->data);
@@ -67,8 +87,38 @@ int main(void) {
 
         BeginDrawing();
         ClearBackground((Color){ 10, 10, 16, 255 });
-        vis_draw_bars(arr, vis, 0, 0, SCREEN_W, SCREEN_H);
-        DrawText(ALGO_NAMES[algo], 10, 10, 20, (Color){ 200, 200, 200, 255 });
+
+        DrawRectangle(0, 0, GetScreenWidth(), TOOLBAR_H, (Color){ 18, 18, 28, 255 });
+
+        for (int i = 0; i < ALGO_COUNT; i++) {
+            if (button_draw(&algo_btns[i])) {
+                algo = i;
+                for (int j = 0; j < ALGO_COUNT; j++) algo_btns[j].active = (j == i);
+                reset(arr, vis, &queue, &running);
+            }
+        }
+
+        if (button_draw(&btn_shuffle)) reset(arr, vis, &queue, &running);
+        if (button_draw(&btn_play)) {
+            if (!running) start_sort(arr, vis, &queue, &running, algo);
+            else paused = 0;
+        }
+        if (button_draw(&btn_pause)) paused = 1;
+        if (button_draw(&btn_step)) {
+            if (!running) start_sort(arr, vis, &queue, &running, algo);
+            paused = 1;
+            if (queue && !queue_done(queue)) {
+                SortStep step;
+                if (queue_pop(queue, &step))
+                    vis_apply_step(vis, &step, arr->data);
+            }
+        }
+
+        int bx = 10, by = TOOLBAR_H + 10;
+        int bw = GetScreenWidth() - 20;
+        int bh = GetScreenHeight() - by - 10;
+        vis_draw_bars(arr, vis, bx, by, bw, bh);
+
         EndDrawing();
     }
 
