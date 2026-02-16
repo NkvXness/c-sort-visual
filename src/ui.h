@@ -9,6 +9,16 @@ typedef struct {
     int         active;
 } Button;
 
-int button_draw(Button *btn);
+typedef struct {
+    Rectangle   rect;
+    const char *label;
+    float       min;
+    float       max;
+    float       value;
+    int         dragging;
+} Slider;
+
+int  button_draw(Button *btn);
+void slider_draw(Slider *sl);
 
 #endif

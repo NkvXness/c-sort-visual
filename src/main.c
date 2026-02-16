@@ -9,6 +9,7 @@
 #define SCREEN_W   1280
 #define SCREEN_H    720
 #define TOOLBAR_H    58
+#define SLIDERS_H    56
 #define ALGO_COUNT    5
 
 typedef void (*GenFn)(StepQueue *, const int *, int);
@@ -47,9 +48,11 @@ int main(void) {
     Array     *arr   = array_create(80);
     VisState  *vis   = vis_create(arr->size);
     StepQueue *queue = NULL;
-    int running = 0;
-    int paused  = 0;
-    int algo    = 0;
+    int   running = 0;
+    int   paused  = 0;
+    int   algo    = 0;
+    float speed   = 40.0f;
+    float accum   = 0.0f;
 
     Button algo_btns[ALGO_COUNT];
     for (int i = 0; i < ALGO_COUNT; i++)
@@ -62,6 +65,9 @@ int main(void) {
     Button btn_play    = {{ 986.0f, 11.0f,  76.0f, 36.0f }, "Play",    0 };
     Button btn_pause   = {{1068.0f, 11.0f,  76.0f, 36.0f }, "Pause",   0 };
     Button btn_step    = {{1150.0f, 11.0f, 120.0f, 36.0f }, "Step →",  0 };
+
+    Slider sl_speed = {{ 380.0f, TOOLBAR_H + 30.0f, 260.0f, 10.0f },
+                        "Speed", 1.0f, 300.0f, 40.0f, 0 };
 
     while (!WindowShouldClose()) {
         /* keyboard algo selection */
@@ -77,10 +83,17 @@ int main(void) {
             start_sort(arr, vis, &queue, &running, algo);
         if (IsKeyPressed(KEY_P)) paused = !paused;
 
+        speed = sl_speed.value;
         if (running && !paused && queue && !queue_done(queue)) {
-            SortStep step;
-            if (queue_pop(queue, &step))
-                vis_apply_step(vis, &step, arr->data);
+            float dt = GetFrameTime();
+            accum += dt;
+            float interval = 1.0f / speed;
+            while (accum >= interval && queue && !queue_done(queue)) {
+                accum -= interval;
+                SortStep step;
+                if (queue_pop(queue, &step))
+                    vis_apply_step(vis, &step, arr->data);
+            }
         }
 
         vis_update_anims(vis, GetFrameTime());
@@ -89,6 +102,8 @@ int main(void) {
         ClearBackground((Color){ 10, 10, 16, 255 });
 
         DrawRectangle(0, 0, GetScreenWidth(), TOOLBAR_H, (Color){ 18, 18, 28, 255 });
+        DrawRectangle(0, TOOLBAR_H, GetScreenWidth(), SLIDERS_H, (Color){ 14, 14, 22, 255 });
+        slider_draw(&sl_speed);
 
         for (int i = 0; i < ALGO_COUNT; i++) {
             if (button_draw(&algo_btns[i])) {
@@ -114,7 +129,7 @@ int main(void) {
             }
         }
 
-        int bx = 10, by = TOOLBAR_H + 10;
+        int bx = 10, by = TOOLBAR_H + SLIDERS_H + 10;
         int bw = GetScreenWidth() - 20;
         int bh = GetScreenHeight() - by - 10;
         vis_draw_bars(arr, vis, bx, by, bw, bh);
