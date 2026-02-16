@@ -33,3 +33,13 @@ void array_shuffle(Array *arr) {
         arr->data[i] = i + 1;
     fisher_yates(arr->data, arr->size);
 }
+
+void array_resize(Array *arr, int new_size) {
+    free(arr->data);
+    arr->size    = new_size;
+    arr->max_val = new_size;
+    arr->data    = malloc(sizeof(int) * new_size);
+    for (int i = 0; i < new_size; i++)
+        arr->data[i] = i + 1;
+    fisher_yates(arr->data, new_size);
+}

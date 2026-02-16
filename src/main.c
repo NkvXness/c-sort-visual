@@ -66,6 +66,8 @@ int main(void) {
     Button btn_pause   = {{1068.0f, 11.0f,  76.0f, 36.0f }, "Pause",   0 };
     Button btn_step    = {{1150.0f, 11.0f, 120.0f, 36.0f }, "Step →",  0 };
 
+    Slider sl_size  = {{  30.0f, TOOLBAR_H + 30.0f, 260.0f, 10.0f },
+                        "Array size", 10.0f, 256.0f, 80.0f, 0 };
     Slider sl_speed = {{ 380.0f, TOOLBAR_H + 30.0f, 260.0f, 10.0f },
                         "Speed", 1.0f, 300.0f, 40.0f, 0 };
 
@@ -84,6 +86,11 @@ int main(void) {
         if (IsKeyPressed(KEY_P)) paused = !paused;
 
         speed = sl_speed.value;
+        int new_size = (int)sl_size.value;
+        if (new_size != arr->size && !running) {
+            array_resize(arr, new_size);
+            vis_resize(vis, new_size);
+        }
         if (running && !paused && queue && !queue_done(queue)) {
             float dt = GetFrameTime();
             accum += dt;
@@ -103,6 +110,7 @@ int main(void) {
 
         DrawRectangle(0, 0, GetScreenWidth(), TOOLBAR_H, (Color){ 18, 18, 28, 255 });
         DrawRectangle(0, TOOLBAR_H, GetScreenWidth(), SLIDERS_H, (Color){ 14, 14, 22, 255 });
+        slider_draw(&sl_size);
         slider_draw(&sl_speed);
 
         for (int i = 0; i < ALGO_COUNT; i++) {

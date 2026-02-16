@@ -41,6 +41,14 @@ void vis_free(VisState *vs) {
     free(vs);
 }
 
+void vis_resize(VisState *vs, int new_size) {
+    free(vs->roles);
+    free(vs->anim_t);
+    vs->size   = new_size;
+    vs->roles  = calloc(new_size, sizeof(int));
+    vs->anim_t = calloc(new_size, sizeof(float));
+}
+
 void vis_apply_step(VisState *vs, const SortStep *step, int *data) {
     for (int i = 0; i < vs->size; i++)
         if (vs->roles[i] == ROLE_COMPARING || vs->roles[i] == ROLE_SWAPPING)
