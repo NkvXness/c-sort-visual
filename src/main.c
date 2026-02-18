@@ -84,6 +84,11 @@ int main(void) {
         if (IsKeyPressed(KEY_ENTER) && !running)
             start_sort(arr, vis, &queue, &running, algo);
         if (IsKeyPressed(KEY_P)) paused = !paused;
+        if (IsKeyPressed(KEY_RIGHT) && running && paused && queue && !queue_done(queue)) {
+            SortStep step;
+            if (queue_pop(queue, &step))
+                vis_apply_step(vis, &step, arr->data);
+        }
 
         speed = sl_speed.value;
         int new_size = (int)sl_size.value;
