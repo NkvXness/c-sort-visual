@@ -1,6 +1,7 @@
 #include "visualizer.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 static const Color COL_NORMAL  = {  72, 108, 196, 255 };
 static const Color COL_COMPARE = { 238, 210,  60, 255 };
@@ -109,4 +110,13 @@ void vis_draw_bars(const Array *arr, const VisState *vs,
         Color col    = lerp_color(COL_NORMAL, target, vs->anim_t[i]);
         DrawRectangle(bx, by, bw, bar_h, col);
     }
+}
+
+void vis_draw_stats(int comparisons, int swaps, float elapsed_sec,
+                    const char *algo_name, int x, int y) {
+    char buf[160];
+    snprintf(buf, sizeof(buf),
+             "%s   |   comparisons: %d   swaps: %d   time: %.2fs",
+             algo_name, comparisons, swaps, elapsed_sec);
+    DrawText(buf, x, y, 16, (Color){ 160, 160, 185, 255 });
 }

@@ -26,5 +26,7 @@ void      vis_apply_step(VisState *vs, const SortStep *step, int *data);
 void      vis_update_anims(VisState *vs, float dt);
 void      vis_draw_bars(const Array *arr, const VisState *vs,
                         int ox, int oy, int w, int h);
+void      vis_draw_stats(int comparisons, int swaps, float elapsed_sec,
+                         const char *algo_name, int x, int y);
 
 #endif

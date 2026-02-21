@@ -55,6 +55,7 @@ int main(void) {
     float accum       = 0.0f;
     int   cmps        = 0;
     int   swaps_count = 0;
+    float elapsed     = 0.0f;
 
     Button algo_btns[ALGO_COUNT];
     for (int i = 0; i < ALGO_COUNT; i++)
@@ -88,7 +89,7 @@ int main(void) {
         }
         if (IsKeyPressed(KEY_ENTER) && !running) {
             start_sort(arr, vis, &queue, &running, algo);
-            cmps = 0; swaps_count = 0;
+            cmps = 0; swaps_count = 0; elapsed = 0.0f;
         }
         if (IsKeyPressed(KEY_P)) paused = !paused;
         if (IsKeyPressed(KEY_RIGHT) && running && paused && queue && !queue_done(queue)) {
@@ -108,7 +109,8 @@ int main(void) {
         }
         if (running && !paused && queue && !queue_done(queue)) {
             float dt = GetFrameTime();
-            accum += dt;
+            accum   += dt;
+            elapsed += dt;
             float interval = 1.0f / speed;
             while (accum >= interval && queue && !queue_done(queue)) {
                 accum -= interval;
@@ -147,14 +149,14 @@ int main(void) {
         if (button_draw(&btn_play)) {
             if (!running) {
                 start_sort(arr, vis, &queue, &running, algo);
-                cmps = 0; swaps_count = 0;
+                cmps = 0; swaps_count = 0; elapsed = 0.0f;
             } else paused = 0;
         }
         if (button_draw(&btn_pause)) paused = 1;
         if (button_draw(&btn_step)) {
             if (!running) {
                 start_sort(arr, vis, &queue, &running, algo);
-                cmps = 0; swaps_count = 0;
+                cmps = 0; swaps_count = 0; elapsed = 0.0f;
             }
             paused = 1;
             if (queue && !queue_done(queue)) {
@@ -169,8 +171,10 @@ int main(void) {
 
         int bx = 10, by = TOOLBAR_H + SLIDERS_H + 10;
         int bw = GetScreenWidth() - 20;
-        int bh = GetScreenHeight() - by - 10;
+        int bh = GetScreenHeight() - by - 32;
         vis_draw_bars(arr, vis, bx, by, bw, bh);
+        vis_draw_stats(cmps, swaps_count, elapsed,
+                       ALGO_NAMES[algo], bx, GetScreenHeight() - 24);
 
         EndDrawing();
     }
