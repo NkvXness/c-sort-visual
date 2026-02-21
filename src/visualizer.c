@@ -109,6 +109,8 @@ void vis_draw_bars(const Array *arr, const VisState *vs,
         Color target = role_to_color(vs->roles[i]);
         Color col    = lerp_color(COL_NORMAL, target, vs->anim_t[i]);
         DrawRectangle(bx, by, bw, bar_h, col);
+        if (bar_h > 4)
+            DrawRectangle(bx, by, bw, 2, (Color){ 255, 255, 255, 30 });
     }
 }
 
