@@ -48,11 +48,13 @@ int main(void) {
     Array     *arr   = array_create(80);
     VisState  *vis   = vis_create(arr->size);
     StepQueue *queue = NULL;
-    int   running = 0;
-    int   paused  = 0;
-    int   algo    = 0;
-    float speed   = 40.0f;
-    float accum   = 0.0f;
+    int   running     = 0;
+    int   paused      = 0;
+    int   algo        = 0;
+    float speed       = 40.0f;
+    float accum       = 0.0f;
+    int   cmps        = 0;
+    int   swaps_count = 0;
 
     Button algo_btns[ALGO_COUNT];
     for (int i = 0; i < ALGO_COUNT; i++)
@@ -80,14 +82,22 @@ int main(void) {
                 reset(arr, vis, &queue, &running);
             }
         }
-        if (IsKeyPressed(KEY_SPACE)) reset(arr, vis, &queue, &running);
-        if (IsKeyPressed(KEY_ENTER) && !running)
+        if (IsKeyPressed(KEY_SPACE)) {
+            reset(arr, vis, &queue, &running);
+            cmps = 0; swaps_count = 0;
+        }
+        if (IsKeyPressed(KEY_ENTER) && !running) {
             start_sort(arr, vis, &queue, &running, algo);
+            cmps = 0; swaps_count = 0;
+        }
         if (IsKeyPressed(KEY_P)) paused = !paused;
         if (IsKeyPressed(KEY_RIGHT) && running && paused && queue && !queue_done(queue)) {
             SortStep step;
-            if (queue_pop(queue, &step))
+            if (queue_pop(queue, &step)) {
+                if (step.type == STEP_COMPARE) cmps++;
+                if (step.type == STEP_SWAP)    swaps_count++;
                 vis_apply_step(vis, &step, arr->data);
+            }
         }
 
         speed = sl_speed.value;
@@ -103,8 +113,11 @@ int main(void) {
             while (accum >= interval && queue && !queue_done(queue)) {
                 accum -= interval;
                 SortStep step;
-                if (queue_pop(queue, &step))
+                if (queue_pop(queue, &step)) {
+                    if (step.type == STEP_COMPARE) cmps++;
+                    if (step.type == STEP_SWAP)    swaps_count++;
                     vis_apply_step(vis, &step, arr->data);
+                }
             }
         }
 
@@ -123,22 +136,34 @@ int main(void) {
                 algo = i;
                 for (int j = 0; j < ALGO_COUNT; j++) algo_btns[j].active = (j == i);
                 reset(arr, vis, &queue, &running);
+                cmps = 0; swaps_count = 0;
             }
         }
 
-        if (button_draw(&btn_shuffle)) reset(arr, vis, &queue, &running);
+        if (button_draw(&btn_shuffle)) {
+            reset(arr, vis, &queue, &running);
+            cmps = 0; swaps_count = 0;
+        }
         if (button_draw(&btn_play)) {
-            if (!running) start_sort(arr, vis, &queue, &running, algo);
-            else paused = 0;
+            if (!running) {
+                start_sort(arr, vis, &queue, &running, algo);
+                cmps = 0; swaps_count = 0;
+            } else paused = 0;
         }
         if (button_draw(&btn_pause)) paused = 1;
         if (button_draw(&btn_step)) {
-            if (!running) start_sort(arr, vis, &queue, &running, algo);
+            if (!running) {
+                start_sort(arr, vis, &queue, &running, algo);
+                cmps = 0; swaps_count = 0;
+            }
             paused = 1;
             if (queue && !queue_done(queue)) {
                 SortStep step;
-                if (queue_pop(queue, &step))
+                if (queue_pop(queue, &step)) {
+                    if (step.type == STEP_COMPARE) cmps++;
+                    if (step.type == STEP_SWAP)    swaps_count++;
                     vis_apply_step(vis, &step, arr->data);
+                }
             }
         }
 
