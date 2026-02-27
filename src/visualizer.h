@@ -22,6 +22,7 @@ typedef struct {
 VisState *vis_create(int size);
 void      vis_free(VisState *vs);
 void      vis_resize(VisState *vs, int new_size);
+void      vis_clear_roles(VisState *vs);
 void      vis_apply_step(VisState *vs, const SortStep *step, int *data);
 void      vis_update_anims(VisState *vs, float dt);
 void      vis_draw_bars(const Array *arr, const VisState *vs,
