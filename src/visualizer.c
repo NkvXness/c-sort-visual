@@ -50,6 +50,11 @@ void vis_resize(VisState *vs, int new_size) {
     vs->anim_t = calloc(new_size, sizeof(float));
 }
 
+void vis_clear_roles(VisState *vs) {
+    memset(vs->roles,  0, vs->size * sizeof(int));
+    memset(vs->anim_t, 0, vs->size * sizeof(float));
+}
+
 void vis_apply_step(VisState *vs, const SortStep *step, int *data) {
     for (int i = 0; i < vs->size; i++)
         if (vs->roles[i] == ROLE_COMPARING || vs->roles[i] == ROLE_SWAPPING)
